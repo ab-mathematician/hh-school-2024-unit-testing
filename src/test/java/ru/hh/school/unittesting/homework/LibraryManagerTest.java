@@ -8,6 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.when;
 
@@ -25,19 +26,12 @@ class LibraryManagerTest{
   @InjectMocks
   private LibraryManager libraryManager;
 
-  private static final double BASE_LATE_FEE_PER_DAY = 0.5;
-  private static final double BESTSELLER_MULTIPLIER = 1.5;
-  private static final double PREMIUM_MEMBER_DISCOUNT = 0.8;
-
-  @BeforeEach
-  void beforeEach(){
-    libraryManager = new LibraryManager(notificationService, userService);
-  }
-
   @Test
   public void borrowBook_NotActiveAccount_Test(){
     when(userService.isUserActive(anyString())).thenReturn(false);
     assertFalse(libraryManager.borrowBook("Book", "UserNotActive"));
+
+    Mockito.verify(notificationService).notifyUser("UserNotActive", "Your account is not active.");
   }
 
   @Test
@@ -53,6 +47,8 @@ class LibraryManagerTest{
     assertEquals(1, libraryManager.getAvailableCopies("Book"));
     assertTrue(libraryManager.borrowBook("Book", "User"));
     assertEquals(0, libraryManager.getAvailableCopies("Book"));
+
+    Mockito.verify(notificationService).notifyUser("User", "You have borrowed the book: Book");
   }
 
   @Test
@@ -76,6 +72,8 @@ class LibraryManagerTest{
     assertEquals(0, libraryManager.getAvailableCopies("Book"));
     assertTrue(libraryManager.returnBook("Book", "User"));
     assertEquals(1, libraryManager.getAvailableCopies("Book"));
+
+    Mockito.verify(notificationService).notifyUser("User", "You have returned the book: Book");
   }
 
 
