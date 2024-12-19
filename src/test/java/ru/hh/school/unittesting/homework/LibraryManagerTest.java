@@ -13,7 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.when;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
 class LibraryManagerTest{
@@ -38,6 +38,8 @@ class LibraryManagerTest{
   public void borrowBook_NotAvailableCopies_Test(){
     when(userService.isUserActive(anyString())).thenReturn(true);
     assertFalse(libraryManager.borrowBook("BookNotFound", "User"));
+
+    Mockito.verify(notificationService, Mockito.never()).notifyUser(any(), any());
   }
 
   @Test
@@ -54,6 +56,8 @@ class LibraryManagerTest{
   @Test
   public void returnBook_BookWasNotBorrowed_Test(){
     assertFalse(libraryManager.returnBook("BookIsNotBorrowed", "User"));
+
+    Mockito.verify(notificationService, Mockito.never()).notifyUser(any(), any());
   }
 
   @Test
@@ -61,7 +65,10 @@ class LibraryManagerTest{
     libraryManager.addBook("BookIsBorrowed", 1);
     when(userService.isUserActive(anyString())).thenReturn(true);
     libraryManager.borrowBook("BookIsBorrowed", "User");
+    Mockito.verify(notificationService, Mockito.times(1)).notifyUser(any(), any());
+
     assertFalse(libraryManager.returnBook("BookIsBorrowed", "UserAnother"));
+    Mockito.verify(notificationService, Mockito.times(1)).notifyUser(any(), any());
   }
 
   @Test
@@ -82,6 +89,8 @@ class LibraryManagerTest{
     libraryManager.addBook("Book1", 4);
     assertEquals(4, libraryManager.getAvailableCopies("Book1"));
     assertEquals(0, libraryManager.getAvailableCopies("Book2"));
+
+    Mockito.verify(notificationService, Mockito.never()).notifyUser(any(), any());
   }
 
 
@@ -92,11 +101,15 @@ class LibraryManagerTest{
         () -> libraryManager.calculateDynamicLateFee(-1, true, true)
     );
     assertEquals("Overdue days cannot be negative.", exception.getMessage());
+
+    Mockito.verify(notificationService, Mockito.never()).notifyUser(any(), any());
   }
 
   @Test
   public void calculateDynamicLateFee_ZeroDays_Test(){
     assertEquals(0, libraryManager.calculateDynamicLateFee(0, true, true));
+
+    Mockito.verify(notificationService, Mockito.never()).notifyUser(any(), any());
   }
 
   @ParameterizedTest
@@ -110,5 +123,7 @@ class LibraryManagerTest{
   })
   public void calculateDynamicLateFee_Calculation_Test(double feeValue, int daysCount, boolean isBestseller, boolean isPremiumMember){
     assertEquals(feeValue, libraryManager.calculateDynamicLateFee(daysCount, isBestseller, isPremiumMember));
+
+    Mockito.verify(notificationService, Mockito.never()).notifyUser(any(), any());
   }
 }
